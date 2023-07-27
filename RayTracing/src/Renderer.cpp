@@ -17,6 +17,29 @@ namespace Utils {
 		return result;
 	}
 
+	static uint32_t PCG_Hash(uint32_t input)
+	{
+		uint32_t state = input * 747796405u + 2891336453u;
+		uint32_t word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
+		return (word >> 22u) ^ word;
+	}
+
+	static float RandomFloat(uint32_t& seed)
+	{
+		seed = PCG_Hash(seed);
+		return (float)seed / (float)std::numeric_limits<uint32_t>::max();
+	}
+
+	static glm::vec3 InUnitSphere(uint32_t& seed)
+	{
+		return glm::normalize(
+			glm::vec3(
+				RandomFloat(seed) * 2.0f - 1.0f, 
+				RandomFloat(seed) * 2.0f - 1.0f, 
+				RandomFloat(seed) * 2.0f - 1.0f) 
+		);
+	}
+
 }
 
 void Renderer::OnResize(uint32_t width, uint32_t height)
@@ -106,42 +129,44 @@ void Renderer::Render(const Scene& scene, const Camera& camera)
 
 glm::vec4 Renderer::PerPixel(uint32_t x, uint32_t y)
 {
-	// 获取从相机到像素的光线 (eye ray)
 	Ray ray;
 	ray.Origin = m_ActiveCamera->GetPosition();
 	ray.Direction = m_ActiveCamera->GetRayDirections()[x + y * m_FinalImage->GetWidth()];
 
+	uint32_t seed = x + y * m_FinalImage->GetWidth();
+	seed *= m_FrameIndex;
 	glm::vec3 color(0.0f);
 	float multiplier = 1.0f;
 
 	int bounces = 5;
 	for (int i = 0; i < bounces; i++)
 	{
+		seed += i;
 		Renderer::HitPayload payload = TraceRay(ray);
-		if (payload.HitDistance < 0.0f) // 光线不再与物体相交
+		if (payload.HitDistance < 0.0f)
 		{
-			glm::vec3 skyColor = glm::vec3(0.6f, 0.7f, 0.9f);
-			color += skyColor * multiplier; // 加上最后的背景的颜色
+			glm::vec3 skyColor = glm::vec3(0.0f, 0.0f, 0.0f);
+			color += skyColor * multiplier;
 			break;
 		}
 
 		glm::vec3 lightDir = glm::normalize(glm::vec3(-1, -1, -1));
-		float lightIntensity = glm::max(glm::dot(payload.WorldNormal, -lightDir), 0.0f); // 光线强度为碰撞点法线与光线的余弦
+		float lightIntensity = glm::max(glm::dot(payload.WorldNormal, -lightDir), 0.0f); // == cos(angle)
 
-		const Sphere& sphere = m_ActiveScene->Spheres[payload.ObjectIndex]; // 获取碰撞的物体
-
+		const Sphere& sphere = m_ActiveScene->Spheres[payload.ObjectIndex];
 		const Material& material = m_ActiveScene->Materials[sphere.MaterialIndex];
+
 		glm::vec3 sphereColor = material.Albedo;
-
 		sphereColor *= lightIntensity;
-		color += sphereColor * multiplier; // 添加颜色为球的颜色与衰减系数
+		color += sphereColor * multiplier;
+		color += material.GetEmission();
+		multiplier *= 0.5f;
 
-		multiplier *= 0.5f; // 反射光线衰减
-
-		ray.Origin = payload.WorldPosition + payload.WorldNormal * 0.0001f; // 反射光线的起点为碰撞点（起点往沿法线方向偏移一点）
-
-		// 反射光线方向。Roughness越大，光线反射所依赖的法线偏移的随机性越大。即表面越粗糙
-		ray.Direction = glm::reflect(ray.Direction, payload.WorldNormal + material.Roughness * Walnut::Random::Vec3(-0.5f, 0.5f)); 
+		ray.Origin = payload.WorldPosition + payload.WorldNormal * 0.0001f;
+		if (m_Settings.SlowRandom)
+			ray.Direction = glm::normalize(payload.WorldNormal + Walnut::Random::InUnitSphere());
+		else
+			ray.Direction = glm::normalize(payload.WorldNormal + Utils::InUnitSphere(seed));
 	}
 
 	return glm::vec4(color, 1.0f);
