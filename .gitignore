@@ -2,7 +2,7 @@
 .vs/
 bin/
 bin-int/
-
+.history
 # Files
 *.vcxproj
 *.vcxproj.user
