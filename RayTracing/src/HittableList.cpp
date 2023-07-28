@@ -1,33 +1,30 @@
 #include "HittableList.h"
 
-bool HittableList::hit(const Ray& ray, float t_min, float t_max, HitRecord& record) const
-{
-	HitRecord tmp_record;
-	bool hit_anything = false;
-	float closest_so_far = t_max;
 
-	for (const auto& object : objects) 
-	{
-		if (object->hit(ray, t_min, closest_so_far, tmp_record))
-		{
-			hit_anything = true;
-			closest_so_far = tmp_record.t;
-			record = tmp_record;
-		}
-	}
-	return hit_anything;
+void HittableList::add(std::shared_ptr<Hittable> object)
+{
+    objects.push_back(object);
+    box = AABB(box, object->bounding_box());
 }
 
-bool HittableList::bounding_box(float time0, float time1, AABB& output_box) const
+bool HittableList::hit(const Ray& ray, Interval ray_t, HitRecord& record) const
 {
-	//AABB temp_box;
-	//bool first_box = true;
-	//for (const auto& object : objects)
-	//{
-	//	if (!object->bounding_box(time0, time1, temp_box))
-	//		return false;
-	//	output_box = first_box ? temp_box : AABB::surrounding_box(output_box, temp_box); //! confused.
-	//	first_box = false;
-	//}
-	return true;
+    HitRecord temp_rec;
+    auto hit_anything = false;
+    auto closest_so_far = ray_t.max;
+
+    for (const auto& object : objects) {
+        if (object->hit(ray, Interval(ray_t.min, closest_so_far), temp_rec)) {
+            hit_anything = true;
+            closest_so_far = temp_rec.t;
+            record = temp_rec;
+        }
+    }
+
+    return hit_anything;
+}
+
+AABB HittableList::bounding_box() const
+{
+    return box;
 }

@@ -1,7 +1,6 @@
 #include "Renderer.h"
 
 #include "Walnut/Random.h"
-
 #include <execution>
 #include "Utils.h"
 
@@ -86,11 +85,11 @@ glm::vec4 Renderer::PerPixel(uint32_t x, uint32_t y)
 
 glm::vec3 Renderer::RayColor(const Ray& ray, const color& background, int depth)
 {
-	HitRecord record {};
+	HitRecord record;
 	if (depth <= 0)
 		return color(0.0f, 0.0f, 0.0f);
 
-	if (!m_ActiveScene->hit(ray, 0.001f, Utils::INF, record))
+	if (!m_ActiveScene->hit(ray, Interval(0.001f, Utils::INF), record))
 		return background;
 
 	Ray scattered;

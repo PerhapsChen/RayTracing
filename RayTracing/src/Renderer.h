@@ -3,9 +3,7 @@
 #include "Walnut/Image.h"
 
 #include "Camera.h"
-#include "Ray.h"
 #include "HittableList.h"
-#include "Hittable.h"
 #include "Material.h"
 
 #include <memory>

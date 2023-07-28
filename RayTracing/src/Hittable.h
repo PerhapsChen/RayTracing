@@ -8,7 +8,7 @@
 class Hittable
 {
 public:
-	virtual bool hit(const Ray& r, float t_min, float t_max, HitRecord& record) const = 0;
-	virtual bool bounding_box(float time0, float time1, AABB& output_box) const = 0;
+	virtual bool hit(const Ray& r, Interval ray_t, HitRecord& record) const = 0;
+	virtual AABB bounding_box() const = 0;
 };
 

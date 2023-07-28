@@ -1,27 +1,36 @@
 #include "Sphere.h"
 
-bool Sphere::hit(const Ray& ray, float t_min, float t_max, HitRecord& record) const
+
+Sphere::Sphere(point3 cen, float r, std::shared_ptr<Material> m) : 
+    center(cen), radius(r), material_ptr(m) 
+{
+    const auto rvec = vec3(radius, radius, radius);
+    box = AABB(center - rvec, center + rvec);
+}
+
+bool Sphere::hit(const Ray& ray, Interval ray_t, HitRecord& record) const
 {
 
-    float A = glm::dot(ray.Direction, ray.Direction);
-    float B = 2.0f * glm::dot(ray.Direction, ray.Origin - center);
-    float C = glm::dot(ray.Origin - center, ray.Origin - center) - radius * radius;
+    float a = glm::dot(ray.Direction, ray.Direction);
+    float half_b = glm::dot(ray.Direction, ray.Origin - center);
+    float c = glm::dot(ray.Origin - center, ray.Origin - center) - radius * radius;
 
-    auto discriminant = B * B - 4 * A * C;
 
-    if (discriminant < 0) 
-        return false;
-    auto sqrtd = std::sqrt(discriminant);
-    auto root = (-B - sqrtd) / (2.0 * A);
-    if (root < t_min || root > t_max) {
-        root = (-B + sqrtd) / (2.0 * A);
-        if (root < t_min || root > t_max) {
+    auto discriminant = half_b * half_b - a * c;
+    if (discriminant < 0) return false;
+    auto sqrtd = sqrt(discriminant);
+
+    // Find the nearest root that lies in the acceptable range.
+    auto root = (-half_b - sqrtd) / a;
+    if (!ray_t.contains(root)) {
+        root = (-half_b + sqrtd) / a;
+        if (!ray_t.contains(root))
             return false;
-        }
     }
+
     record.t = root;
     record.p = ray.at(record.t);
-    vec3 outward_normal = (record.p - center) / radius; // normal is a unit vec3
+    vec3 outward_normal = (record.p - center) / radius;
     record.set_face_normal(ray, outward_normal);
     get_sphere_uv(outward_normal, record.u, record.v);
     record.material_ptr = material_ptr;
@@ -29,8 +38,7 @@ bool Sphere::hit(const Ray& ray, float t_min, float t_max, HitRecord& record) co
     return true;
 }
 
-bool Sphere::bounding_box(float time0, float time1, AABB& output_box) const
+AABB Sphere::bounding_box() const
 {
-    output_box = AABB(center - vec3(radius, radius, radius), center + vec3(radius, radius, radius));
-    return true;
+    return box;
 }

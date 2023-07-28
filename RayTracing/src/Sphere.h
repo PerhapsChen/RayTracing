@@ -6,15 +6,15 @@ class Sphere : public Hittable
 {
 public:
     Sphere() {}
-    Sphere(point3 cen, float r, std::shared_ptr<Material> m) :
-        center(cen), radius(r), material_ptr(m) {}
+    Sphere(point3 cen, float r, std::shared_ptr<Material> m);
 
-    virtual bool hit(const Ray& r, float t_min, float t_max, HitRecord& rec) const override;
-    virtual bool bounding_box(float time0, float time1, AABB& output_box) const override;
+    virtual bool hit(const Ray& r, Interval ray_t, HitRecord& rec) const override;
+    virtual AABB bounding_box() const override;
 public:
     point3 center;
     float radius;
     std::shared_ptr<Material> material_ptr;
+    AABB box;
 private:
     static void get_sphere_uv(const point3& p, float& u, float& v)
     {

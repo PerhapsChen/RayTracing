@@ -1,4 +1,4 @@
-#pragma onece;
+#pragma once;
 
 #include "Hittable.h"
 #include "Utils.h"
@@ -11,11 +11,12 @@ public:
 	HittableList(std::shared_ptr<Hittable> object) { add(object); }
 
 	void clear() { objects.clear(); }
-	void add(std::shared_ptr<Hittable> object) { objects.push_back(object); }
-	virtual bool hit(const Ray& ray, float t_min, float t_max, HitRecord& record) const override;
-	virtual bool bounding_box(float time0, float time1, AABB& output_box) const override;
+	void add(std::shared_ptr<Hittable> object);
+	virtual bool hit(const Ray& ray, Interval ray_t, HitRecord& record) const override;
+	virtual AABB bounding_box() const override;
 
 public:
 	std::vector<std::shared_ptr<Hittable>> objects;
+	AABB box;
 };
 
