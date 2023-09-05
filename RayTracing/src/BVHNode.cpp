@@ -2,7 +2,8 @@
 #include <iostream>
 
 
-BVHNode::BVHNode(const std::vector<std::shared_ptr<Hittable>>& src_objects, size_t start, size_t end)
+BVHNode::BVHNode(const std::vector<std::shared_ptr<Hittable>>& src_objects, size_t start, size_t end):
+    src(src_objects)
 {
     auto objects = src_objects; // Create a modifiable array of the source scene objects
 

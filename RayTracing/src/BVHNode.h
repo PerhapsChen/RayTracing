@@ -18,6 +18,7 @@ public:
     AABB bounding_box() const override { return box; }
 
 public:
+    std::vector<std::shared_ptr<Hittable>> src;
     std::shared_ptr<Hittable> left;
     std::shared_ptr<Hittable> right;
     AABB box;

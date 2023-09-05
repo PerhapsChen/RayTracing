@@ -44,4 +44,6 @@ private:
 	uint32_t* m_ImageData = nullptr;
 	glm::vec4* m_AccumulationData = nullptr;
 	uint32_t m_FrameIndex = 1;
+public:
+	int m_Bounce = 10;
 };

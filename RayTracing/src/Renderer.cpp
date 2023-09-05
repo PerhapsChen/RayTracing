@@ -78,8 +78,8 @@ glm::vec4 Renderer::PerPixel(uint32_t x, uint32_t y)
 
 	glm::vec3 pixel_color(0.0f, 0.0f, 0.0f);
 	glm::vec3 background(0.7f, 0.8f, 1.0f);
-	int bounce = 5;
-	pixel_color = RayColor(ray, background, bounce);
+	int bounce = 30;
+	pixel_color = RayColor(ray, background, m_Bounce);
 	return glm::vec4(pixel_color, 1.0f);
 }
 
